@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Logging;
 using Pos.tenant.Application.Features.SubscriptionPayments.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
 using Pos.tenant.Application.Interfaces.Services;
@@ -23,39 +24,65 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.Checkout
         private readonly ISubscriptionPaymentRepositoryAsync _subscriptionPaymentRepository;
         private readonly IPaymobPaymentService _paymobPaymentService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<StartPaymobCheckoutCommandHandler> _logger;
 
         public StartPaymobCheckoutCommandHandler(
             ISubscriptionInvoiceRepositoryAsync subscriptionInvoiceRepository,
             ISubscriptionPaymentRepositoryAsync subscriptionPaymentRepository,
             IPaymobPaymentService paymobPaymentService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ILogger<StartPaymobCheckoutCommandHandler> logger)
         {
             _subscriptionInvoiceRepository = subscriptionInvoiceRepository;
             _subscriptionPaymentRepository = subscriptionPaymentRepository;
             _paymobPaymentService = paymobPaymentService;
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         public async Task<Result<PaymobCheckoutDto>> Handle(StartPaymobCheckoutCommand request, CancellationToken cancellationToken)
         {
+            
             var idempotencyKey = request.IdempotencyKey.Trim();
 
             var existingPayment = await _subscriptionPaymentRepository.GetByIdempotencyKeyAsync(idempotencyKey, cancellationToken);
 
             if (existingPayment != null)
             {
-                if (existingPayment.InvoiceId!=request.InvoiceId)
+                if (existingPayment.InvoiceId != request.InvoiceId)
                 {
-                    return Result<PaymobCheckoutDto>.Failure("This idempotency key was already used for a different invoice.");
+                    return Result<PaymobCheckoutDto>.Failure(
+                        "This idempotency key was already used for a different invoice.");
+                }
+
+                if (existingPayment.Status == PaymentStatuses.Completed)
+                {
+                    return Result<PaymobCheckoutDto>.Failure(
+                        "This payment has already been completed.");
+                }
+
+                if (existingPayment.Status == PaymentStatuses.Failed)
+                {
+                    return Result<PaymobCheckoutDto>.Failure(
+                        "This checkout attempt has already failed. Please start a new checkout with a new idempotency key.");
+                }
+
+                if (existingPayment.Status == PaymentStatuses.Refunded)
+                {
+                    return Result<PaymobCheckoutDto>.Failure(
+                        "This payment has already been refunded. Please start a new checkout with a new idempotency key if needed.");
                 }
 
                 if (string.IsNullOrWhiteSpace(existingPayment.ProviderClientSecret))
                 {
-                    return Result<PaymobCheckoutDto>.Failure("Checkout is already being processed. Please try again shortly.");
+                    return Result<PaymobCheckoutDto>.Failure(
+                        "Checkout is already being processed. Please try again shortly.");
                 }
 
                 var existingCheckoutUrl= _paymobPaymentService.BuildCheckoutUrl(existingPayment.ProviderClientSecret);
-
+                
+                _logger.LogInformation("Returning existing checkout URL for payment {PaymentId}.", existingPayment.Id);
+    
                 return Result<PaymobCheckoutDto>.Success(new PaymobCheckoutDto
                 {
                     PaymentId = existingPayment.Id,
@@ -76,6 +103,8 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.Checkout
             if (invoice.Status == InvoiceStatuses.Paid)
                 return Result<PaymobCheckoutDto>.Failure("Invoice is already paid.");
 
+            _logger.LogInformation("Starting Paymob checkout for invoice {InvoiceId} with idempotency key {IdempotencyKey}.", invoice.Id, idempotencyKey);
+
             var payment = new SubscriptionPayment
             {
                 Id = Guid.NewGuid(),
@@ -91,22 +120,26 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.Checkout
 
             await _subscriptionPaymentRepository.AddAsync(payment);
 
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
             var paymobResult = await _paymobPaymentService.CreateIntentionAsync(
                 new PaymobCreateIntentionRequest
                 {
                     PaymentId = payment.Id,
-                    InvoiceId = invoice.InvoiceNumber,
+                    InvoiceId = invoice.Id.ToString(),
                     InvoiceNumber = invoice.InvoiceNumber,
                     Amount = invoice.Total,
                     Currency = "EGP"
                 },
                 cancellationToken);
 
+            _logger.LogInformation(
+             "Paymob intention created for payment {PaymentId}. ProviderPaymentReference: {ProviderPaymentReference}", payment.Id,
+             paymobResult.ProviderPaymentReference);
+
             payment.ProviderClientSecret = paymobResult.ClientSecret;
             payment.ProviderPaymentReference = paymobResult.ProviderPaymentReference;
             payment.ProviderStatus = paymobResult.ProviderStatus ?? "intended";
-
-            _subscriptionPaymentRepository.Update(payment);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

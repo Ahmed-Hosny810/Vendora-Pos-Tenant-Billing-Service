@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Pos.tenant.Infrastructure.Shared.Payment
+namespace Pos.tenant.Infrastructure.Shared.Payment.Paymob
 {
     public class PaymobSettings
     {

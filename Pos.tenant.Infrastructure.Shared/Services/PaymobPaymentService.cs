@@ -1,12 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using Pos.tenant.Application.Features.SubscriptionPayments.DTOS;
 using Pos.tenant.Application.Interfaces.Services;
-using Pos.tenant.Infrastructure.Shared.Payment;
-using System;
-using System.Collections.Generic;
+using Pos.tenant.Infrastructure.Shared.Payment.Paymob;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,6 +19,7 @@ namespace Pos.tenant.Infrastructure.Shared.Services
             _httpClient = httpClient;
             _settings = options.Value;
         }
+
         public async Task<PaymobCreateIntentionResult> CreateIntentionAsync(PaymobCreateIntentionRequest request, CancellationToken cancellationToken)
         {
             var amountInCents = (int)(request.Amount * 100);

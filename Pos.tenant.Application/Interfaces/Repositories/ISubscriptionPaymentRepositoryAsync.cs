@@ -10,5 +10,14 @@ namespace Pos.tenant.Application.Interfaces.Repositories
         Task<SubscriptionPayment?> GetByIdempotencyKeyAsync(
             string idempotencyKey,
             CancellationToken cancellationToken = default);
+
+        Task<SubscriptionPayment?> GetByIdWithInvoiceAsync(
+             Guid paymentId,
+             CancellationToken cancellationToken = default);
+
+        Task<SubscriptionPayment?> GetByProviderPaymentReferenceWithInvoiceAsync(
+             string providerPaymentReference,
+             CancellationToken cancellationToken = default);
+
     }
 }

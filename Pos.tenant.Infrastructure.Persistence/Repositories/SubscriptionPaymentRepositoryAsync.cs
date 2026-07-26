@@ -25,5 +25,20 @@ namespace Pos.tenant.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.IdempotencyKey == idempotencyKey,cancellationToken);
         }
+
+        public async Task<SubscriptionPayment?> GetByIdWithInvoiceAsync(Guid paymentId, CancellationToken cancellationToken = default)
+        {
+            return await _context.SubscriptionPayments
+                     .Include(x => x.Invoice)
+                     .FirstOrDefaultAsync(x => x.Id == paymentId, cancellationToken);
+        }
+
+        public async Task<SubscriptionPayment?> GetByProviderPaymentReferenceWithInvoiceAsync(string providerPaymentReference, CancellationToken cancellationToken = default)
+        {
+            return await _context.SubscriptionPayments
+                .Include(x => x.Invoice)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ProviderPaymentReference == providerPaymentReference, cancellationToken);
+        }
     }
 }

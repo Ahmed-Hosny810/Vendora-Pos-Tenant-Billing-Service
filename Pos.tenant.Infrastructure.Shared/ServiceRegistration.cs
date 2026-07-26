@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Pos.tenant.Application.Interfaces.Payment;
 using Pos.tenant.Application.Interfaces.Services;
 using Pos.tenant.Infrastructure.Shared.Payment;
+using Pos.tenant.Infrastructure.Shared.Payment.Paymob;
 using Pos.tenant.Infrastructure.Shared.Services;
 
 namespace Pos.tenant.Infrastructure.Shared
@@ -25,6 +27,8 @@ namespace Pos.tenant.Infrastructure.Shared
 
                     client.BaseAddress = new Uri(settings.BaseUrl.TrimEnd('/') + "/");
                 });
+            services.AddScoped<IPaymobWebhookVerifier, PaymobWebhookVerifier>();
+            services.AddScoped< ITenantSubscriptionActivationService,TenantSubscriptionActivationService>();
 
             return services;
         }

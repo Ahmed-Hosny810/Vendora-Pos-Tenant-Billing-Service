@@ -27,11 +27,11 @@ namespace Pos.tenant.Domain.Models
             PlanId = newPlanId;
         }
 
-        public void MarkActive(DateTime startDate)
+        public void MarkActive(DateTime periodStart, DateTime periodEnd)
         {
             Status = TenantSubscriptionStatuses.Active;
-            CurrentPeriodStart = startDate;
-            CurrentPeriodEnd = startDate.AddMonths(1);
+            CurrentPeriodStart = periodStart;
+            CurrentPeriodEnd = periodEnd;
             GracePeriodEndsAt = null;
         }
 

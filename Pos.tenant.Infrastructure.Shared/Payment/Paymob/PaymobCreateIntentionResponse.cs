@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace Pos.tenant.Infrastructure.Shared.Payment
+namespace Pos.tenant.Infrastructure.Shared.Payment.Paymob
 {
     internal class PaymobCreateIntentionResponse
     {

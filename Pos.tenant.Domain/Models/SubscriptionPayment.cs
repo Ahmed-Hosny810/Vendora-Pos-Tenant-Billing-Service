@@ -37,16 +37,34 @@ namespace Pos.tenant.Domain.Models
         {
             Status = PaymentStatuses.Completed;
             PaidAt = paidAt;
+            FailureReason = null;
 
             if (!string.IsNullOrWhiteSpace(providerTransactionId))
                 ProviderTransactionId = providerTransactionId;
         }
 
-        public void MarkFailed(string? failureReason = null)
+        public void MarkPending(string? providerTransactionId = null,string? providerStatus = null)
+        {
+            Status = PaymentStatuses.Pending;
+            PaidAt = null;
+            FailureReason = null;
+
+            if (!string.IsNullOrWhiteSpace(providerTransactionId))
+                ProviderTransactionId = providerTransactionId;
+
+            if (!string.IsNullOrWhiteSpace(providerStatus))
+                ProviderStatus = providerStatus;
+        }
+
+
+        public void MarkFailed(string? failureReason = null, string? providerTransactionId = null)
         {
             Status = PaymentStatuses.Failed;
             PaidAt = null;
             FailureReason = failureReason;
+
+            if (!string.IsNullOrWhiteSpace(providerTransactionId))
+                ProviderTransactionId = providerTransactionId;
         }
 
         public void Refund()
