@@ -10,4 +10,5 @@
   <Folder Name="/WebApi/">
     <Project Path="Pos.tenant.WebApi/Pos.tenant.WebApi.csproj" />
   </Folder>
+  <Project Path="Pos.tenant.IntegrationTests/Pos.tenant.IntegrationTests.csproj" Id="19e3ce9a-ed06-4d1d-a796-adf7e6c695c7" />
 </Solution>
