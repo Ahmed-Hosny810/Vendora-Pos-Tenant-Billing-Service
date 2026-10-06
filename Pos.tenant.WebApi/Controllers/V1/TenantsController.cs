@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Pos.tenant.Application.Features.SubscriptionPlans.Commands.CreateCommand;
@@ -29,7 +30,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
         {
             _mediator = mediator;
         }
-
+        [Authorize(Policy = "CanCreateTenantDuringOnboarding")]
         [HttpPost]
         public async Task<ActionResult<Response<Guid>>> Post([FromBody] CreateTenantCommand command)
         {
@@ -51,6 +52,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
                 "Tenant created successfully"
             ));
         }
+        [Authorize(Policy ="PlatformAdmins")]
         [HttpPost("GetAll")]
         public async Task<ActionResult<PagedResponse<IEnumerable<TenantDto>>>> Get([FromBody] GetAllTenantsQueryParameter parameter)
         {
@@ -62,7 +64,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
         {
             return Ok(await _mediator.Send(new GetTenantByIdQuery { TenantId = id, Includes = includes }));
         }
-
+        [Authorize(Policy = "PlatformAdmins")]
         [HttpPost("{id:guid}/activate")]
         public async Task<ActionResult<Response<Guid>>> Activate( Guid id,[FromBody] ActivateTenantCommand command)
         {
@@ -87,7 +89,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
                 "Tenant activated successfully."
             ));
         }
-
+        [Authorize(Policy = "PlatformAdmins")]
         [HttpPost("{id:guid}/suspend")]
         public async Task<ActionResult<Response<Guid>>> Suspend(
             Guid id,
@@ -114,7 +116,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
                 "Tenant suspended successfully."
             ));
         }
-
+        [Authorize(Policy = "PlatformAdmins")]
         [HttpPost("{id:guid}/cancel")]
         public async Task<ActionResult<Response<Guid>>> Cancel(Guid id,[FromBody] CancelTenantCommand command)
         {
@@ -154,10 +156,12 @@ namespace Pos.tenant.WebApi.Controllers.V1
             ));
         }
 
-        [HttpPut("{id:guid}/settings")]
-        public async Task<ActionResult<Response<Guid>>> UpdateSettings(Guid id, [FromBody] UpdateTenantSettingsCommand command)
+        [Authorize(Policy = "TenantOwnerOnly")]
+        [HttpPut("settings")]
+        public async Task<ActionResult<Response<Guid>>> UpdateSettings(
+            [FromBody] UpdateTenantSettingsCommand command, CancellationToken cancellationToken)
         {
-            var reult = await _mediator.Send(command);
+            var reult = await _mediator.Send(command, cancellationToken);
 
             if (reult.IsFailure)
             {
@@ -201,83 +205,83 @@ namespace Pos.tenant.WebApi.Controllers.V1
             ));
         }
 
-        [HttpPost("{tenantId:guid}/usage/increase-branch")]
-        public async Task<ActionResult<Response<Guid>>> IncreaseBranch(Guid tenantId)
+        [HttpPost("usage/increase-branch")]
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseBranch(IncreaseUsageRequest request)
         {
             var result = await _mediator.Send(new IncreaseTenantUsageCommand
             {
-                TenantId = tenantId,
+                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Branch
             });
 
             return HandleUsageCommandResult(result, "Branch usage increased successfully.");
         }
 
-        [HttpPost("{tenantId:guid}/usage/increase-product")]
-        public async Task<ActionResult<Response<Guid>>> IncreaseProduct(Guid tenantId)
+        [HttpPost("usage/increase-product")]
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseProduct(IncreaseUsageRequest request)
         {
             var result = await _mediator.Send(new IncreaseTenantUsageCommand
             {
-                TenantId = tenantId,
+                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Product
             });
 
             return HandleUsageCommandResult(result, "Product usage increased successfully.");
         }
 
-        [HttpPost("{tenantId:guid}/usage/increase-cashier")]
-        public async Task<ActionResult<Response<Guid>>> IncreaseCashier(Guid tenantId)
+        [HttpPost("usage/increase-cashier")]
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseCashier(IncreaseUsageRequest request)
         {
             var result = await _mediator.Send(new IncreaseTenantUsageCommand
             {
-                TenantId = tenantId,
+                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Cashier
             });
 
             return HandleUsageCommandResult(result, "Cashier usage increased successfully.");
         }
 
-        [HttpPost("{tenantId:guid}/usage/decrease-branch")]
-        public async Task<ActionResult<Response<Guid>>> DecreaseBranch(Guid tenantId)
+        [HttpPost("usage/decrease-branch")]
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseBranch(IncreaseUsageRequest request)
         {
             var result = await _mediator.Send(new DecreaseTenantUsageCommand
             {
-                TenantId = tenantId,
+                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Branch
             });
 
             return HandleUsageCommandResult(result, "Branch usage decreased successfully.");
         }
 
-        [HttpPost("{tenantId:guid}/usage/decrease-product")]
-        public async Task<ActionResult<Response<Guid>>> DecreaseProduct(Guid tenantId)
+        [HttpPost("usage/decrease-product")]
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseProduct(IncreaseUsageRequest request)
         {
             var result = await _mediator.Send(new DecreaseTenantUsageCommand
             {
-                TenantId = tenantId,
+                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Product
             });
 
             return HandleUsageCommandResult(result, "Product usage decreased successfully.");
         }
 
-        [HttpPost("{tenantId:guid}/usage/decrease-cashier")]
-        public async Task<ActionResult<Response<Guid>>> DecreaseCashier(Guid tenantId)
+        [HttpPost("usage/decrease-cashier")]
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseCashier(IncreaseUsageRequest request)
         {
             var result = await _mediator.Send(new DecreaseTenantUsageCommand
             {
-                TenantId = tenantId,
+                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Cashier
             });
 
             return HandleUsageCommandResult(result, "Cashier usage decreased successfully.");
         }
 
-        private ActionResult<Response<Guid>> HandleUsageCommandResult(Result<Guid> result,string successMessage)
+        private ActionResult<Response<TenantUsageUpdateResult>> HandleUsageCommandResult(Result<TenantUsageUpdateResult> result,string successMessage)
         {
             if (result.IsFailure)
             {
-                return BadRequest(new Response<Guid>
+                return BadRequest(new Response<TenantUsageUpdateResult>
                 {
                     Succeeded = false,
                     Message = "Tenant usage operation failed.",
@@ -285,7 +289,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
                 });
             }
 
-            return Ok(new Response<Guid>(
+            return Ok(new Response<TenantUsageUpdateResult>(
                 result.Value,
                 successMessage
             ));

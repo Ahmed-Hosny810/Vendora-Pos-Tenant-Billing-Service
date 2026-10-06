@@ -11,9 +11,6 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.Settings
     {
         public UpdateTenantSettingsCommandValidator()
         {
-            RuleFor(x => x.TenantId)
-                .NotEmpty();
-
             RuleFor(x => x.DefaultVatRate)
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("VAT rate must be greater than or equal to 0.");

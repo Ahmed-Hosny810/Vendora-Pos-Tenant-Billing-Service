@@ -24,7 +24,7 @@ namespace Pos.tenant.Infrastructure.Persistence.Seeders
                     CurrencyCode="EGP",
                     BranchLimit = 1,
                     ProductLimit = 500,
-                    CashierLimit = 2,
+                    CashierLimit = 3,
                     AllowVariants = true,
                     IsActive = true
                 },

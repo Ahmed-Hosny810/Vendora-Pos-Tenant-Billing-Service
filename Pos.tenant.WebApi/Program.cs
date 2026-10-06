@@ -1,13 +1,18 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using OpenIddict.Validation.AspNetCore;
+using Pos.tenant.Application;
+using Pos.tenant.Application.Interfaces.Services;
 using Pos.tenant.Infrastructure.Persistence;
-using Pos.tenant.Infrastructure.Shared;
 using Pos.tenant.Infrastructure.Persistence.Contexts;
 using Pos.tenant.Infrastructure.Persistence.Seeders;
+using Pos.tenant.Infrastructure.Shared;
+using Pos.tenant.Infrastructure.Shared.Constants;
 using Pos.tenant.WebApi.Extensions;
-using Pos.tenant.Application;
-using Serilog;
 using Pos.tenant.WebApi.MiddleWares;
+using Pos.tenant.WebApi.Services;
+using Serilog;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 namespace Pos.tenant.WebApi
 {
     public class Program
@@ -30,6 +35,8 @@ namespace Pos.tenant.WebApi
             });
 
             builder.Services.AddControllers();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
             // AddHealthChecks
             builder.Services
                     .AddHealthChecks()
@@ -47,18 +54,23 @@ namespace Pos.tenant.WebApi
             // Swagger (via extension)
             builder.Services.AddSwaggerExtension();
 
+            // authentication and authorization
+
+            builder.Services.AddAuthenticationServices(builder.Configuration);
+
             var app = builder.Build();
 
             app.UseMiddleware<ErrorHandlerMiddleware>();
-            // Configure the HTTP request pipeline.
+
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwaggerExtension();
-                await app.Services.SeedDatabaseAsync();
+               // await app.Services.SeedDatabaseAsync();
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
             //app process is alive.
             app.MapHealthChecks("/health/live", new HealthCheckOptions

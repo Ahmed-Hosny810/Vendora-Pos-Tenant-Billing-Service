@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Pos.tenant.Application.Features.Tenants.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
+using Pos.tenant.Application.Interfaces.Services;
 using Pos.tenant.Application.Wrappers;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,6 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.Settings
 {
     public class UpdateTenantSettingsCommand:IRequest<Result<Guid>>
     {
-        public Guid TenantId { get; set; }
         public decimal DefaultVatRate { get; set; }
         public bool PricesIncludeTax { get; set; }
         public string? ReceiptFooterAr { get; set; }
@@ -24,19 +24,27 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.Settings
     {
         private readonly ITenantSettingsRepositoryAsync _tenantSettingsRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUser;
 
-        public UpdateTenantSettingsCommandHandler(ITenantSettingsRepositoryAsync tenantSettingsRepository,IUnitOfWork unitOfWork)
+        public UpdateTenantSettingsCommandHandler(ITenantSettingsRepositoryAsync tenantSettingsRepository,IUnitOfWork unitOfWork,
+            ICurrentUserService currentUser)
         {
             _tenantSettingsRepository = tenantSettingsRepository;
             _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
         }
         public async Task<Result<Guid>> Handle(UpdateTenantSettingsCommand request, CancellationToken cancellationToken)
         {
-            var tenantSettings = await _tenantSettingsRepository.GetTenantSettingsQuery(request.TenantId);
+            var tenantId = _currentUser.TenantId;
+
+            if (!tenantId.HasValue || tenantId.Value == Guid.Empty)
+                throw new UnauthorizedAccessException("A valid tenant is required.");
+
+            var tenantSettings = await _tenantSettingsRepository.GetTenantSettingsQuery(tenantId.Value);
 
             if (tenantSettings == null)
             {
-                return Result<Guid>.Failure($"Tenant settings with tenant id {request.TenantId} not found.");
+                return Result<Guid>.Failure("Tenant settings were not found.");
             }
 
             tenantSettings.DefaultVatRate = request.DefaultVatRate;

@@ -2,9 +2,7 @@
 using MediatR;
 using Pos.tenant.Application.Features.Tenants.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace Pos.tenant.Application.Features.Tenants.Queries.GetStatusHistoryQuery
 {
