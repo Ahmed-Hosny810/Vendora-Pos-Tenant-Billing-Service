@@ -10,6 +10,7 @@ namespace Pos.tenant.Application.Interfaces.Repositories
     public interface ISubscriptionInvoiceRepositoryAsync: IGenericRepositoryAsync<SubscriptionInvoice, Guid>
     {
         Task<bool> IsInvoiceNumberExistsAsync(Guid tenantId, string invoiceNumber);
+        Task<SubscriptionInvoice?> GetByTenantAndIdAsync(Guid tenantId, Guid invoiceId, CancellationToken cancellationToken);
 
         Task<PagedResponse<IEnumerable<SubscriptionInvoice>>> GetInvoicesPagedResponseAsync(Guid tenantId,SubscriptionInvoiceFilter filter,
             SubscriptionInvoiceOrderKey orderKey, bool orderDescending, int currentPage, int pageSize);

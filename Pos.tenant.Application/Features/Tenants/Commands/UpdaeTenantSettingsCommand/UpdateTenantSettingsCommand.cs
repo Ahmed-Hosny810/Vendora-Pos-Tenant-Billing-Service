@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Pos.tenant.Application.Features.Tenants.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
 using Pos.tenant.Application.Interfaces.Services;
@@ -40,7 +40,7 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.Settings
             if (!tenantId.HasValue || tenantId.Value == Guid.Empty)
                 throw new UnauthorizedAccessException("A valid tenant is required.");
 
-            var tenantSettings = await _tenantSettingsRepository.GetTenantSettingsQuery(tenantId.Value);
+            var tenantSettings = await _tenantSettingsRepository.GetByTenantIdAsync(tenantId.Value, cancellationToken);
 
             if (tenantSettings == null)
             {

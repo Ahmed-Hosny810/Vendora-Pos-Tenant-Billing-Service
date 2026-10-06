@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Pos.tenant.Application.Features.Tenants.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
 using Pos.tenant.Application.Wrappers;
@@ -31,7 +31,7 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.TenantUsageCountersCo
         }
         public async Task<Result<TenantUsageUpdateResult>> Handle(IncreaseTenantUsageCommand request, CancellationToken cancellationToken)
         {
-            var tenantUsageCounter = await _tenantUsageCountersRepository.GetByIdAsync(request.TenantId);
+            var tenantUsageCounter = await _tenantUsageCountersRepository.GetByTenantIdAsync(request.TenantId, cancellationToken);
 
             if (tenantUsageCounter == null)
             {

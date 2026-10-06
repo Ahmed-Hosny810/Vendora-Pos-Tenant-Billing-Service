@@ -8,6 +8,7 @@ namespace Pos.tenant.Application.Interfaces.Repositories
     public interface ISubscriptionPaymentRepositoryAsync:IGenericRepositoryAsync<SubscriptionPayment,Guid>
     {
         Task<SubscriptionPayment?> GetByIdempotencyKeyAsync(
+            Guid tenantId,
             string idempotencyKey,
             CancellationToken cancellationToken = default);
 

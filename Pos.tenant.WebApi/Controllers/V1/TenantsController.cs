@@ -1,4 +1,4 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,6 +11,7 @@ using Pos.tenant.Application.Features.Tenants.Commands.TenantUsageCountersComman
 using Pos.tenant.Application.Features.Tenants.DTOS;
 using Pos.tenant.Application.Features.Tenants.Queries.GetAllQuery;
 using Pos.tenant.Application.Features.Tenants.Queries.GetByIdQuery;
+using Pos.tenant.Application.Features.Tenants.Queries.GetCurrentQuery;
 using Pos.tenant.Application.Features.Tenants.Queries.GetStatusHistoryQuery;
 using Pos.tenant.Application.Features.Tenants.Queries.GetTenantSettingsQuery;
 using Pos.tenant.Application.Features.Tenants.Queries.GetTenantUsageCounters;
@@ -29,6 +30,13 @@ namespace Pos.tenant.WebApi.Controllers.V1
         public TenantsController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+        [Authorize(Policy = "TenantUserOnly")]
+        [HttpGet("me")]
+        public async Task<ActionResult<Response<TenantDto>>> GetCurrent(
+            [FromQuery] TenantIncludes includes, CancellationToken cancellationToken)
+        {
+            return Ok(await _mediator.Send(new GetCurrentTenantQuery { Includes = includes }, cancellationToken));
         }
         [Authorize(Policy = "CanCreateTenantDuringOnboarding")]
         [HttpPost]
@@ -59,7 +67,8 @@ namespace Pos.tenant.WebApi.Controllers.V1
             return Ok(await _mediator.Send(new GetAllTenantsQuery { Parameter = parameter }));
         }
         
-        [HttpGet("{id}")]
+        [Authorize(Policy = "PlatformAdmins")]
+        [HttpGet("{id:guid}")]
         public async Task<ActionResult<Response<TenantDto>>> GetById(Guid id, [FromQuery] TenantIncludes includes)
         {
             return Ok(await _mediator.Send(new GetTenantByIdQuery { TenantId = id, Includes = includes }));
@@ -142,13 +151,11 @@ namespace Pos.tenant.WebApi.Controllers.V1
             ));
         }
 
-        [HttpGet("{id:guid}/tenant-status-history")]
-        public async Task<ActionResult<Response<IEnumerable<TenantStatusHistoryDto>>>> GetStatusHistory(Guid id)
+        [Authorize(Policy = "TenantOwnerOnly")]
+        [HttpGet("status-history")]
+        public async Task<ActionResult<Response<IEnumerable<TenantStatusHistoryDto>>>> GetStatusHistory(CancellationToken cancellationToken)
         {
-            var history = await _mediator.Send(new GetTenantStatusHistoryQuery
-            {
-                TenantId = id
-            });
+            var history = await _mediator.Send(new GetTenantStatusHistoryQuery(), cancellationToken);
 
             return Ok(new Response<IEnumerable<TenantStatusHistoryDto>>(
                 history,
@@ -176,13 +183,11 @@ namespace Pos.tenant.WebApi.Controllers.V1
             return Ok(new Response<Guid>(reult.Value, "Tenant settings updated successfully."));
         }
 
-        [HttpGet("{id:guid}/settings")]
-        public async Task<ActionResult<Response<TenantSettingsDto>>> GetTenantSettings(Guid id)
+        [Authorize(Policy = "TenantUserOnly")]
+        [HttpGet("settings")]
+        public async Task<ActionResult<Response<TenantSettingsDto>>> GetTenantSettings(CancellationToken cancellationToken)
         {
-            var history = await _mediator.Send(new GetTenantSettingsByIdQuery
-            {
-                TenantId = id
-            });
+            var history = await _mediator.Send(new GetTenantSettingsQuery(), cancellationToken);
 
             return Ok(new Response<TenantSettingsDto>(
                 history,
@@ -191,13 +196,11 @@ namespace Pos.tenant.WebApi.Controllers.V1
         }
 
 
-        [HttpGet("{tenantId:guid}/usage")]
-        public async Task<ActionResult<Response<TenantUsageCountersDto>>> GetUsage(Guid tenantId)
+        [Authorize(Policy = "TenantOwnerOnly")]
+        [HttpGet("usage")]
+        public async Task<ActionResult<Response<TenantUsageCountersDto>>> GetUsage(CancellationToken cancellationToken)
         {
-            var usage = await _mediator.Send(new GetTenantUsageQuery
-            {
-                TenantId = tenantId
-            });
+            var usage = await _mediator.Send(new GetTenantUsageQuery(), cancellationToken);
 
             return Ok(new Response<TenantUsageCountersDto>(
                 usage,

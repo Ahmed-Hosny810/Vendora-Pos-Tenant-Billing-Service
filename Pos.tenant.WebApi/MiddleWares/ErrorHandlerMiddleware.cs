@@ -29,6 +29,9 @@ namespace Pos.tenant.WebApi.MiddleWares
                 var responseModel = new Response<string>() { Succeeded = false, Message = error?.Message + "==>" + error.InnerException?.Message };
                 switch (error)
                 {
+                    case UnauthorizedAccessException:
+                        response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        break;
                     case Application.Exceptions.ApiException e:
                         // custom application error
                         response.StatusCode = (int)HttpStatusCode.BadRequest;

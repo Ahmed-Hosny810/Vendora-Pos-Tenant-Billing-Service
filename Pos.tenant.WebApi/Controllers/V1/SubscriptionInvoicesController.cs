@@ -1,5 +1,6 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Pos.tenant.Application.Features.SubscriptionInvoices.Commands.CreateCommand;
@@ -22,10 +23,11 @@ namespace Pos.tenant.WebApi.Controllers.V1
             _mediator = mediator;
         }
 
+        [Authorize(Policy = "PlatformAdmins")]
         [HttpPost]
-        public async Task<ActionResult<Response<SubscriptionInvoiceDto>>> Create(Guid tenantId,[FromBody] CreateSubscriptionInvoiceCommand command)
+        public async Task<ActionResult<Response<SubscriptionInvoiceDto>>> Create([FromBody] CreateSubscriptionInvoiceCommand command, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(command);
+            var result = await _mediator.Send(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -40,18 +42,19 @@ namespace Pos.tenant.WebApi.Controllers.V1
             return Ok( new Response<SubscriptionInvoiceDto>(result.Value,"Subscription invoice created successfully."));
         }
 
+        [Authorize(Policy = "TenantOwnerOnly")]
         [HttpGet]
         public async Task<ActionResult<PagedResponse<IEnumerable<SubscriptionInvoiceDto>>>> GetTenantInvoices(
-           Guid tenantId,
-           [FromQuery] GetAllTenantInvoicesQueryParameter parameter)
+           [FromQuery] GetAllTenantInvoicesQueryParameter parameter, CancellationToken cancellationToken)
         { 
-            return Ok(await _mediator.Send(new GetAllTenantInvoicesQuery {TenantId = tenantId, Parameter = parameter} ) );
+            return Ok(await _mediator.Send(new GetAllTenantInvoicesQuery { Parameter = parameter}, cancellationToken) );
         }
 
+        [Authorize(Policy = "TenantOwnerOnly")]
         [HttpGet("{invoiceId:guid}")]
-        public async Task<ActionResult<SubscriptionInvoiceDto>> GetTenantInvoiceById( Guid invoiceId)
+        public async Task<ActionResult<Response<SubscriptionInvoiceDto>>> GetTenantInvoiceById(Guid invoiceId, CancellationToken cancellationToken)
         {
-            return Ok(await _mediator.Send(new GetInvoiceByIdQuery { InvoiceId = invoiceId }));
+            return Ok(new Response<SubscriptionInvoiceDto>(await _mediator.Send(new GetInvoiceByIdQuery { InvoiceId = invoiceId }, cancellationToken)));
         }
     }
 }

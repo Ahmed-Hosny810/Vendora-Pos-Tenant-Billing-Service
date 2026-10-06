@@ -28,6 +28,11 @@ namespace Pos.tenant.Infrastructure.Persistence.Repositories
             return _context.SubscriptionInvoices
                 .AnyAsync(i => i.TenantId == tenantId && i.InvoiceNumber == invoiceNumber);
         }
+        public Task<SubscriptionInvoice?> GetByTenantAndIdAsync(Guid tenantId, Guid invoiceId, CancellationToken cancellationToken)
+        {
+            return _context.SubscriptionInvoices.SingleOrDefaultAsync(
+                invoice => invoice.TenantId == tenantId && invoice.Id == invoiceId, cancellationToken);
+        }
         public async Task<PagedResponse<IEnumerable<SubscriptionInvoice>>> GetInvoicesPagedResponseAsync(Guid tenantId, SubscriptionInvoiceFilter filter, 
             SubscriptionInvoiceOrderKey orderKey, bool orderDescending, int pageNumber, int pageSize)
         {

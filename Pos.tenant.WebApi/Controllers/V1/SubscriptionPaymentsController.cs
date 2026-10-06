@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Pos.tenant.Application.Features.SubscriptionPayments.Commands.CheckoutCommand;
@@ -24,6 +25,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
 
         // for testing purposes, this endpoint allows manual registration of subscription payments
         [HttpPost("manual")]
+        [Authorize(Policy = "PlatformAdmins")]
         public async Task<ActionResult<Response<SubscriptionPaymentDto>>> RegisterPayment([FromBody] RegisterSubscriptionPaymentCommand command)
         {
             var result = await _mediator.Send(command);
@@ -46,6 +48,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
         }
 
         [HttpPost("paymob/checkout")]
+        [Authorize(Policy = "TenantOwnerOnly")]
         public async Task<ActionResult<Response<PaymobCheckoutDto>>> StartPaymobCheckout( [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
                         [FromBody] StartPaymobCheckoutRequest request)
         {

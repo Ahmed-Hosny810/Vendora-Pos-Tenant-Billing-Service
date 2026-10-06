@@ -17,11 +17,10 @@ namespace Pos.tenant.Infrastructure.Persistence.Repositories
             _context = context;
         }
 
-        public Task<TenantSettings> GetTenantSettingsQuery(Guid tenantId)
+        public Task<TenantSettings?> GetByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken)
         {
             return _context.TenantSettings
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ts => ts.TenantId == tenantId);
+                .SingleOrDefaultAsync(ts => ts.TenantId == tenantId, cancellationToken);
         }
     }
 }

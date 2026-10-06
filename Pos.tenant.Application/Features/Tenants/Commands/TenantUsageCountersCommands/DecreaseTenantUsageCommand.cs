@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Pos.tenant.Application.Features.Tenants.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
 using Pos.tenant.Application.Wrappers;
@@ -32,7 +32,7 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.TenantUsageCountersCo
             CancellationToken cancellationToken)
         {
             var tenantUsageCounter = await _tenantUsageCountersRepository
-                .GetByIdAsync(request.TenantId);
+                .GetByTenantIdAsync(request.TenantId, cancellationToken);
 
             if (tenantUsageCounter == null)
             {

@@ -7,6 +7,6 @@ namespace Pos.tenant.Application.Interfaces.Repositories
 {
     public interface ITenantSettingsRepositoryAsync : IGenericRepositoryAsync<TenantSettings, Guid>
     {
-        Task<TenantSettings> GetTenantSettingsQuery(Guid tenantId);
+        Task<TenantSettings?> GetByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken);
     }
 }

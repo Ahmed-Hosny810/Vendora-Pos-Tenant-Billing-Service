@@ -24,6 +24,7 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.Checkout
         private readonly ISubscriptionPaymentRepositoryAsync _subscriptionPaymentRepository;
         private readonly IPaymobPaymentService _paymobPaymentService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUser;
         private readonly ILogger<StartPaymobCheckoutCommandHandler> _logger;
 
         public StartPaymobCheckoutCommandHandler(
@@ -31,13 +32,15 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.Checkout
             ISubscriptionPaymentRepositoryAsync subscriptionPaymentRepository,
             IPaymobPaymentService paymobPaymentService,
             IUnitOfWork unitOfWork,
-            ILogger<StartPaymobCheckoutCommandHandler> logger)
+            ILogger<StartPaymobCheckoutCommandHandler> logger,
+            ICurrentUserService currentUser)
         {
             _subscriptionInvoiceRepository = subscriptionInvoiceRepository;
             _subscriptionPaymentRepository = subscriptionPaymentRepository;
             _paymobPaymentService = paymobPaymentService;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _currentUser = currentUser;
         }
 
         public async Task<Result<PaymobCheckoutDto>> Handle(StartPaymobCheckoutCommand request, CancellationToken cancellationToken)
@@ -45,7 +48,17 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.Checkout
             
             var idempotencyKey = request.IdempotencyKey.Trim();
 
-            var existingPayment = await _subscriptionPaymentRepository.GetByIdempotencyKeyAsync(idempotencyKey, cancellationToken);
+            var tenantId = _currentUser.TenantId;
+            if (!tenantId.HasValue || tenantId.Value == Guid.Empty)
+                throw new UnauthorizedAccessException("A valid tenant is required.");
+
+            var invoice = await _subscriptionInvoiceRepository.GetByTenantAndIdAsync(
+                tenantId.Value, request.InvoiceId, cancellationToken);
+
+            if (invoice == null)
+                return Result<PaymobCheckoutDto>.Failure("Subscription invoice not found.");
+
+            var existingPayment = await _subscriptionPaymentRepository.GetByIdempotencyKeyAsync(tenantId.Value, idempotencyKey, cancellationToken);
 
             if (existingPayment != null)
             {
@@ -92,11 +105,6 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.Checkout
                     CheckoutUrl = existingCheckoutUrl
                 });
             }
-            var invoice = await _subscriptionInvoiceRepository.GetByIdAsync(request.InvoiceId);
-
-            if (invoice == null)
-                return Result<PaymobCheckoutDto>.Failure("Subscription invoice not found.");
-
             if (invoice.Status == InvoiceStatuses.Cancelled)
                 return Result<PaymobCheckoutDto>.Failure("Cannot start checkout for a cancelled invoice.");
 

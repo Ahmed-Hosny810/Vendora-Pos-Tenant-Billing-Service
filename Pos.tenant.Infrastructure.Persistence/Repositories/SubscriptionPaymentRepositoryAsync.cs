@@ -18,12 +18,13 @@ namespace Pos.tenant.Infrastructure.Persistence.Repositories
         }
 
         public async Task<SubscriptionPayment?> GetByIdempotencyKeyAsync(
+           Guid tenantId,
            string idempotencyKey,
            CancellationToken cancellationToken = default)
         {
             return await _context.SubscriptionPayments
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.IdempotencyKey == idempotencyKey,cancellationToken);
+                .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.IdempotencyKey == idempotencyKey,cancellationToken);
         }
 
         public async Task<SubscriptionPayment?> GetByIdWithInvoiceAsync(Guid paymentId, CancellationToken cancellationToken = default)
