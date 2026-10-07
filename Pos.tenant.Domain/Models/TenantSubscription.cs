@@ -1,8 +1,6 @@
 ﻿using Pos.tenant.Domain.Common;
 using Pos.tenant.Domain.Constants;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace Pos.tenant.Domain.Models
 {
@@ -16,7 +14,7 @@ namespace Pos.tenant.Domain.Models
         public DateTime? CurrentPeriodStart { get; set; }
         public DateTime? CurrentPeriodEnd { get; set; }
         public DateTime? GracePeriodEndsAt { get; set; }
-
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
         public Tenant Tenant { get; set; } = null!;
         public SubscriptionPlan Plan { get; set; } = null!;
 

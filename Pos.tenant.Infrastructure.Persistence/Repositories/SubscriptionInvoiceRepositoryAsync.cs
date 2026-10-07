@@ -54,5 +54,20 @@ namespace Pos.tenant.Infrastructure.Persistence.Repositories
             return new PagedResponse<IEnumerable<SubscriptionInvoice>>(invoices,pageNumber, pageSize, totalRecords);   
         }
 
+        public async Task<SubscriptionInvoice?> GetBySubscriptionAndDueDateAsync(
+            Guid tenantId,
+            Guid subscriptionId,
+            DateTime dueDate,
+            CancellationToken cancellationToken)
+        {
+            return await _context.SubscriptionInvoices
+                .SingleOrDefaultAsync(
+                    i => i.TenantId == tenantId &&
+                         i.TenantSubscriptionId == subscriptionId &&
+                         i.DueDate == dueDate,
+                    cancellationToken);
+        }
+
+       
     }
 }

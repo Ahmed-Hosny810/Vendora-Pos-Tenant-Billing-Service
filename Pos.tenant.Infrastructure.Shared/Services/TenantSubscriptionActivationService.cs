@@ -36,8 +36,12 @@ namespace Pos.tenant.Infrastructure.Shared.Services
             if (!invoice.PaidAt.HasValue)
                 return Result<Guid>.Failure("The paid invoice must have a payment date.");
 
-            // Both payment paths save the payment completion time on the invoice.
-            var periodStart = invoice.PaidAt.Value;
+            // Check if the owner paid the renewal invoice before its due date
+            // Early renewals preserve remaining days; late payments receive a full month.
+            var periodStart = invoice.PaidAt.Value > invoice.DueDate
+                ? invoice.PaidAt.Value
+                : invoice.DueDate;
+
             var periodEnd = periodStart.AddMonths(1);
 
             var tenant = await _tenantRepository.GetByIdAsync(invoice.TenantId);
@@ -90,6 +94,8 @@ namespace Pos.tenant.Infrastructure.Shared.Services
 
                 await _tenantStatusHistoryRepository.AddAsync(statusHistory);
             }
+
+            tenant.UpdatedAt = DateTime.UtcNow;
 
             _tenantRepository.Update(tenant);
             _tenantSubscriptionRepository.Update(subscription);

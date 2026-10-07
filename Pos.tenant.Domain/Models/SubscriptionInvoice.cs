@@ -1,8 +1,5 @@
 using Pos.tenant.Domain.Common;
 using Pos.tenant.Domain.Constants;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Pos.tenant.Domain.Models
 {
@@ -22,7 +19,7 @@ namespace Pos.tenant.Domain.Models
 
         public DateTime DueDate { get; set; }
         public DateTime? PaidAt { get; set; }
-
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
         //Navigation Properties
         public Tenant Tenant { get; set; } = null!;
         public TenantSubscription TenantSubscription { get; set; } = null!;

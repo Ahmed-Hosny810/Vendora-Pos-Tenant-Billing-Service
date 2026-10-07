@@ -40,6 +40,9 @@ namespace Pos.tenant.Infrastructure.Persistence.Contexts.DbConfigurations
             builder.Property(x => x.DueDate)
                 .IsRequired();
 
+            builder.Property(x => x.RowVersion)
+                .IsRowVersion();
+
             builder.Property(x => x.PaidAt)
                 .IsRequired(false);
 
@@ -55,6 +58,9 @@ namespace Pos.tenant.Infrastructure.Persistence.Contexts.DbConfigurations
             builder.HasIndex(x => new { x.TenantId, x.Status });
 
             builder.HasIndex(x => new { x.TenantId, x.DueDate });
+
+            builder.HasIndex(x => new { x.TenantId,x.TenantSubscriptionId, x.DueDate })
+                    .IsUnique();
 
             builder.HasOne(x => x.Tenant)
                      .WithMany(x => x.SubscriptionInvoices)

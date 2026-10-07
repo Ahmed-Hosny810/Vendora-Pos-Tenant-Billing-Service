@@ -30,7 +30,7 @@ namespace Pos.tenant.Domain.Models
 
         public ICollection<SubscriptionPayment> SubscriptionPayments { get; set; } = new HashSet<SubscriptionPayment>();
 
-
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
         public string GetDisplayName(string? language)
         {
             var isArabic = string.Equals(language, "ar", StringComparison.OrdinalIgnoreCase);

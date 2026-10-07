@@ -31,6 +31,9 @@ namespace Pos.tenant.Infrastructure.Persistence.Contexts.DbConfigurations
             builder.Property(x => x.GracePeriodEndsAt)
                 .IsRequired(false);
 
+            builder.Property(x => x.RowVersion)
+                .IsRowVersion();
+
             builder.HasIndex(x => x.TenantId);
 
             builder.HasIndex(x => new { x.TenantId, x.Status });

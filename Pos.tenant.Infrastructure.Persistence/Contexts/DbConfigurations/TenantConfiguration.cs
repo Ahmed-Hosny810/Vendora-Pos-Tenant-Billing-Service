@@ -44,11 +44,15 @@ namespace Pos.tenant.Infrastructure.Persistence.Contexts.DbConfigurations
                 .HasDefaultValue("EGP")
                 .IsRequired();
 
+            builder.Property(x => x.RowVersion)
+                 .IsRowVersion();
+
             builder.Property(x => x.InventoryMode)
                 .HasMaxLength(30)
                 .IsUnicode(false)
                 .HasDefaultValue(TenantInventoryModes.TrackStock)
                 .IsRequired();
+
 
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
