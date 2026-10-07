@@ -31,5 +31,6 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.DTOS
         public string Status { get; set; } = null!;
 
         public DateTime? PaidAt { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -8,6 +8,8 @@ using Pos.tenant.Application.Features.SubscriptionPayments.Commands.CreateComman
 using Pos.tenant.Application.Features.SubscriptionPayments.DTOS;
 using Pos.tenant.Application.Wrappers;
 using Pos.tenant.WebApi.Requests.Payments;
+using Pos.tenant.Application.Features.SubscriptionPayments.Queries.GetAllQuery;
+using Pos.tenant.Application.Features.SubscriptionPayments.Queries.GetByIdQuery;
 
 namespace Pos.tenant.WebApi.Controllers.V1
 {
@@ -23,7 +25,24 @@ namespace Pos.tenant.WebApi.Controllers.V1
             _mediator = mediator;
         }
 
-        // for testing purposes, this endpoint allows manual registration of subscription payments
+        [Authorize(Policy = "TenantOwnerOnly")]
+        [HttpGet]
+        public async Task<ActionResult<PagedResponse<IEnumerable<SubscriptionPaymentDto>>>> GetPayments(
+            [FromQuery] GetSubscriptionPaymentsQueryParameter parameter, CancellationToken cancellationToken)
+        {
+            return Ok(await _mediator.Send(new GetSubscriptionPaymentsQuery { Parameter = parameter }, cancellationToken));
+        }
+
+        [Authorize(Policy = "TenantOwnerOnly")]
+        [HttpGet("{paymentId:guid}")]
+        public async Task<ActionResult<Response<SubscriptionPaymentDto>>> GetPaymentById(
+            Guid paymentId, CancellationToken cancellationToken)
+        {
+            var payment = await _mediator.Send(new GetSubscriptionPaymentByIdQuery { PaymentId = paymentId }, cancellationToken);
+            return Ok(new Response<SubscriptionPaymentDto>(payment));
+        }
+
+        // Manual registration is restricted to platform administrators.
         [HttpPost("manual")]
         [Authorize(Policy = "PlatformAdmins")]
         public async Task<ActionResult<Response<SubscriptionPaymentDto>>> RegisterPayment([FromBody] RegisterSubscriptionPaymentCommand command)

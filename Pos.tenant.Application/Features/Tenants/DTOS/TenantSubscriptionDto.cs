@@ -30,6 +30,10 @@ namespace Pos.tenant.Application.Features.Tenants.DTOS
                 PlanNameEn = subscription.Plan.NameEn;
                 MonthlyPrice = subscription.Plan.MonthlyPrice;
                 CurrencyCode = subscription.Plan.CurrencyCode;
+                BranchLimit = subscription.Plan.BranchLimit;
+                ProductLimit = subscription.Plan.ProductLimit;
+                CashierLimit = subscription.Plan.CashierLimit;
+                AllowVariants = subscription.Plan.AllowVariants;
             }
         }
 
@@ -43,6 +47,10 @@ namespace Pos.tenant.Application.Features.Tenants.DTOS
 
         public decimal? MonthlyPrice { get; set; }
         public string? CurrencyCode { get; set; }
+        public int? BranchLimit { get; set; }
+        public int? ProductLimit { get; set; }
+        public int? CashierLimit { get; set; }
+        public bool AllowVariants { get; set; }
 
         public string Status { get; set; } = null!;
 

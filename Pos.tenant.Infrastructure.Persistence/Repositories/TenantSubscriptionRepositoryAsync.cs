@@ -17,12 +17,13 @@ namespace Pos.tenant.Infrastructure.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<TenantSubscription?> GetCurrentPlanByTenantIdAsync(Guid tenantId)
+        public async Task<TenantSubscription?> GetCurrentPlanByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default)
         {
             return await _context.TenantSubscriptions
                 .Include(ts => ts.Plan)
                 .OrderByDescending(x => x.CreatedAt)
-                .FirstOrDefaultAsync(ts => ts.TenantId == tenantId);
+                .ThenByDescending(x => x.Id)
+                .FirstOrDefaultAsync(ts => ts.TenantId == tenantId, cancellationToken);
         }
     }
 }

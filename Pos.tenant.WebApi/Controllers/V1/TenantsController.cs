@@ -17,6 +17,7 @@ using Pos.tenant.Application.Features.Tenants.Queries.GetTenantSettingsQuery;
 using Pos.tenant.Application.Features.Tenants.Queries.GetTenantUsageCounters;
 using Pos.tenant.Application.Wrappers;
 using Pos.tenant.Domain.Enums;
+using Pos.tenant.Application.Features.Tenants.Queries.GetCurrentSubscriptionQuery;
 
 namespace Pos.tenant.WebApi.Controllers.V1
 {
@@ -38,6 +39,14 @@ namespace Pos.tenant.WebApi.Controllers.V1
         {
             return Ok(await _mediator.Send(new GetCurrentTenantQuery { Includes = includes }, cancellationToken));
         }
+        [Authorize(Policy = "TenantOwnerOnly")]
+        [HttpGet("subscription")]
+        public async Task<ActionResult<Response<TenantSubscriptionDto>>> GetCurrentSubscription(CancellationToken cancellationToken)
+        {
+            var subscription = await _mediator.Send(new GetCurrentTenantSubscriptionQuery(), cancellationToken);
+            return Ok(new Response<TenantSubscriptionDto>(subscription));
+        }
+
         [Authorize(Policy = "CanCreateTenantDuringOnboarding")]
         [HttpPost]
         public async Task<ActionResult<Response<Guid>>> Post([FromBody] CreateTenantCommand command)

@@ -23,6 +23,8 @@ namespace Pos.tenant.Application.Mappings
             CreateMap<TenantSettings, TenantSettingsDto>();
             CreateMap<TenantUsageCounters, TenantUsageCountersDto>();
             CreateMap<SubscriptionInvoice, SubscriptionInvoiceDto>();
+            CreateMap<SubscriptionPayment, Pos.tenant.Application.Features.SubscriptionPayments.DTOS.SubscriptionPaymentDto>()
+                .ForMember(destination => destination.PaymentId, options => options.MapFrom(source => source.Id));
         }
     }
 }
