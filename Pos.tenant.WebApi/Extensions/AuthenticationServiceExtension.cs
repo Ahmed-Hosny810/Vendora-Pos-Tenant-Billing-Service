@@ -28,7 +28,9 @@ namespace Pos.tenant.WebApi.Extensions
                 options.AddPolicy("CanCreateTenantDuringOnboarding", policy =>
                 {
                     policy.RequireAuthenticatedUser();
-                    policy.RequireClaim("user_type", "PendingTenant");
+                    // Tenant users may retry their own already-created onboarding tenant.
+                    // The handler permits new creation only for PendingTenant users.
+                    policy.RequireClaim("user_type", "PendingTenant", "Tenant");
                 });
 
                 options.AddPolicy("TenantUserOnly", policy =>

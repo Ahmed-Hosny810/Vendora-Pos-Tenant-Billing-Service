@@ -1,4 +1,4 @@
-﻿using Pos.tenant.Application.Features.Tenants.Queries.GetAllQuery;
+using Pos.tenant.Application.Features.Tenants.Queries.GetAllQuery;
 using Pos.tenant.Application.Wrappers;
 using Pos.tenant.Domain.Models;
 using System;
@@ -14,5 +14,6 @@ namespace Pos.tenant.Application.Interfaces.Repositories
             TenantOrderKey orderKey, bool orderDescending, int currentPage, int pageSize);
 
         Task<Tenant?> GetTenantByIdAsync(Guid tenantId, TenantIncludes includes);
+        Task<Tenant?> GetByCreatorUserIdAsync(Guid userId, CancellationToken cancellationToken);
     }
 }

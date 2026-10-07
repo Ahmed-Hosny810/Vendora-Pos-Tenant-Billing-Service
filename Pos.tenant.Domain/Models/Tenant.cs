@@ -1,4 +1,4 @@
-﻿using Pos.tenant.Domain.Common;
+using Pos.tenant.Domain.Common;
 using Pos.tenant.Domain.Constants;
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ namespace Pos.tenant.Domain.Models
     public partial class Tenant:BaseEntity
     {
         public string? NameAr { get; set; }
+        public Guid? CreatedByUserId { get; set; }
         public string NameEn { get; set; }= null!;
         public string BusinessTypeCode { get; set; } = null!;
 

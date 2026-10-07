@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Pos.tenant.Application.Features.SubscriptionPayments.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
 using Pos.tenant.Application.Interfaces.Services;
@@ -8,7 +8,7 @@ using Pos.tenant.Domain.Models;
 
 namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.CreateCommand
 {
-    public class RegisterSubscriptionPaymentCommand:IRequest<Result<SubscriptionPaymentDto>>
+    public class RecordManualSubscriptionPaymentCommand:IRequest<Result<SubscriptionPaymentDto>>
     {
         public Guid InvoiceId { get; set; }
 
@@ -21,14 +21,14 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.CreateCo
         public bool MarkAsCompleted { get; set; }
     }
 
-    public class RegisterSubscriptionPaymentCommandHandler: IRequestHandler<RegisterSubscriptionPaymentCommand, Result<SubscriptionPaymentDto>>
+    public class RecordManualSubscriptionPaymentCommandHandler: IRequestHandler<RecordManualSubscriptionPaymentCommand, Result<SubscriptionPaymentDto>>
     {
         private readonly ISubscriptionPaymentRepositoryAsync _subscriptionPaymentRepository;
         private readonly ISubscriptionInvoiceRepositoryAsync _subscriptionInvoiceRepository;
         private readonly ITenantSubscriptionActivationService _tenantSubscriptionActivationService;
         private readonly IUnitOfWork _unitOfWork;
 
-        public RegisterSubscriptionPaymentCommandHandler(
+        public RecordManualSubscriptionPaymentCommandHandler(
             ISubscriptionPaymentRepositoryAsync subscriptionPaymentRepository,
             ISubscriptionInvoiceRepositoryAsync subscriptionInvoiceRepository,
             ITenantSubscriptionActivationService tenantSubscriptionActivationService,
@@ -41,7 +41,7 @@ namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.CreateCo
         }
 
         public async Task<Result<SubscriptionPaymentDto>> Handle(
-            RegisterSubscriptionPaymentCommand request,
+            RecordManualSubscriptionPaymentCommand request,
             CancellationToken cancellationToken)
         {
             var invoice = await _subscriptionInvoiceRepository.GetByIdAsync(

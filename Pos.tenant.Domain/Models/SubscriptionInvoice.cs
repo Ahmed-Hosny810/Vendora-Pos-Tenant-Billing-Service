@@ -1,4 +1,4 @@
-﻿using Pos.tenant.Domain.Common;
+using Pos.tenant.Domain.Common;
 using Pos.tenant.Domain.Constants;
 using System;
 using System.Collections.Generic;

@@ -1,13 +1,13 @@
-﻿using FluentValidation;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Pos.tenant.Application.Features.SubscriptionPayments.Commands.CreateCommand
 {
-    public class RegisterSubscriptionPaymentCommandValidator: AbstractValidator<RegisterSubscriptionPaymentCommand>
+    public class RecordManualSubscriptionPaymentCommandValidator: AbstractValidator<RecordManualSubscriptionPaymentCommand>
     {
-        public RegisterSubscriptionPaymentCommandValidator()
+        public RecordManualSubscriptionPaymentCommandValidator()
         {
             RuleFor(x => x.InvoiceId)
                 .NotEmpty();

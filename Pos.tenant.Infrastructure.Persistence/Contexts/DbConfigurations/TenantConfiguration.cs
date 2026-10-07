@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Pos.tenant.Domain.Constants;
 using Pos.tenant.Domain.Models;
@@ -15,6 +15,9 @@ namespace Pos.tenant.Infrastructure.Persistence.Contexts.DbConfigurations
             builder.ToTable("Tenants");
 
             builder.HasKey(x => x.Id);
+            builder.HasIndex(x => x.CreatedByUserId)
+                .IsUnique()
+                .HasFilter("[CreatedByUserId] IS NOT NULL");
 
             builder.Property(x => x.NameAr)
                 .HasMaxLength(200)

@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Pos.tenant.Application.Features.SubscriptionPayments.Commands.CreateCommand;
 using Pos.tenant.Domain.Constants;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +27,7 @@ namespace Pos.tenant.IntegrationTests.Tests
             await _fixture.DbContext.SubscriptionInvoices.AddAsync(invoice);
             await _fixture.DbContext.SaveChangesAsync();
 
-            var command = new RegisterSubscriptionPaymentCommand
+            var command = new RecordManualSubscriptionPaymentCommand
             {
                 InvoiceId = invoice.Id,
                 Amount = invoice.Total,
@@ -76,7 +76,7 @@ namespace Pos.tenant.IntegrationTests.Tests
             await _fixture.DbContext.SubscriptionInvoices.AddAsync(invoice);
             await _fixture.DbContext.SaveChangesAsync();
 
-            var command = new RegisterSubscriptionPaymentCommand
+            var command = new RecordManualSubscriptionPaymentCommand
             {
                 InvoiceId = invoice.Id,
                 Amount = invoice.Total - 100,
@@ -114,7 +114,7 @@ namespace Pos.tenant.IntegrationTests.Tests
             await _fixture.DbContext.SubscriptionInvoices.AddAsync(invoice);
             await _fixture.DbContext.SaveChangesAsync();
 
-            var command = new RegisterSubscriptionPaymentCommand
+            var command = new RecordManualSubscriptionPaymentCommand
             {
                 InvoiceId = invoice.Id,
                 Amount = invoice.Total,
@@ -161,7 +161,7 @@ namespace Pos.tenant.IntegrationTests.Tests
             await _fixture.DbContext.SubscriptionInvoices.AddAsync(invoice);
             await _fixture.DbContext.SaveChangesAsync();
 
-            var command = new RegisterSubscriptionPaymentCommand
+            var command = new RecordManualSubscriptionPaymentCommand
             {
                 InvoiceId = invoice.Id,
                 Amount = invoice.Total,
@@ -196,7 +196,7 @@ namespace Pos.tenant.IntegrationTests.Tests
             await _fixture.DbContext.SubscriptionInvoices.AddAsync(invoice);
             await _fixture.DbContext.SaveChangesAsync();
 
-            var command = new RegisterSubscriptionPaymentCommand
+            var command = new RecordManualSubscriptionPaymentCommand
             {
                 InvoiceId = invoice.Id,
                 Amount = invoice.Total,

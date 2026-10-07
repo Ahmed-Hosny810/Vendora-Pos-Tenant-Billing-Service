@@ -1,4 +1,4 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -45,7 +45,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
         // Manual registration is restricted to platform administrators.
         [HttpPost("manual")]
         [Authorize(Policy = "PlatformAdmins")]
-        public async Task<ActionResult<Response<SubscriptionPaymentDto>>> RegisterPayment([FromBody] RegisterSubscriptionPaymentCommand command)
+        public async Task<ActionResult<Response<SubscriptionPaymentDto>>> RecordManualPayment([FromBody] RecordManualSubscriptionPaymentCommand command)
         {
             var result = await _mediator.Send(command);
 

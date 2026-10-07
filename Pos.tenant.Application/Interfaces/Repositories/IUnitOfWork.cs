@@ -7,5 +7,6 @@ namespace Pos.tenant.Application.Interfaces.Repositories
     public interface IUnitOfWork
     {
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        Task<bool> TrySaveTenantCreationAsync(CancellationToken cancellationToken);
     }
 }

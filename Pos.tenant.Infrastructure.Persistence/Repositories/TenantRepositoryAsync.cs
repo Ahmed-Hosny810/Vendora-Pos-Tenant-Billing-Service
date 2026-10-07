@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Pos.tenant.Application.Features.Tenants.Queries.GetAllQuery;
 using Pos.tenant.Application.Interfaces.Repositories;
 using Pos.tenant.Application.Wrappers;
@@ -26,6 +26,11 @@ namespace Pos.tenant.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .ApplyIncludes(includes)
                 .FirstOrDefaultAsync(t => t.Id == tenantId);
+        }
+
+        public Task<Tenant?> GetByCreatorUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            return _context.Tenants.SingleOrDefaultAsync(tenant => tenant.CreatedByUserId == userId, cancellationToken);
         }
 
         public async Task<PagedResponse<IEnumerable<Tenant>>> GetTenantsPagedResponseAsync(TenantFilter filter, TenantIncludes includes, TenantOrderKey orderKey, bool orderDescending, int pageNumber, int pageSize)

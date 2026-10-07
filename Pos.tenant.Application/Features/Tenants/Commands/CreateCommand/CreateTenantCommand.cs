@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using MediatR;
 using Pos.tenant.Application.Interfaces.Repositories;
+using Pos.tenant.Application.Interfaces.Services;
 using Pos.tenant.Application.Wrappers;
 using Pos.tenant.Domain.Constants;
 using Pos.tenant.Domain.Models;
@@ -27,10 +28,13 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.CreateCommand
         private readonly ITenantUsageCountersRepositoryAsync _tenantUsageCountersRepository;
         private readonly ITenantSubscriptionRepositoryAsync _tenantSubscriptionRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUser;
+        private readonly ISubscriptionInvoiceRepositoryAsync _invoiceRepository;
 
         public CreateTenantCommandHandler(ITenantRepositoryAsync tenantRepository,ISubscriptionPlanRepositoryAsync subscriptionPlanRepository,
             ITenantSettingsRepositoryAsync tenantSettingsRepository, ITenantUsageCountersRepositoryAsync tenantUsageCountersRepository,
-            ITenantSubscriptionRepositoryAsync tenantSubscriptionRepository,IUnitOfWork unitOfWork)
+            ITenantSubscriptionRepositoryAsync tenantSubscriptionRepository,IUnitOfWork unitOfWork,
+            ICurrentUserService currentUser, ISubscriptionInvoiceRepositoryAsync invoiceRepository)
         {
             _tenantRepository = tenantRepository;
             _subscriptionPlanRepository = subscriptionPlanRepository;
@@ -38,9 +42,22 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.CreateCommand
             _tenantUsageCountersRepository = tenantUsageCountersRepository;
             _tenantSubscriptionRepository = tenantSubscriptionRepository;
             _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
+            _invoiceRepository = invoiceRepository;
         }
         public async Task<Result<Guid>> Handle(CreateTenantCommand request, CancellationToken cancellationToken)
         {
+            if (!Guid.TryParse(_currentUser.UserId, out var userId) || userId == Guid.Empty)
+                throw new UnauthorizedAccessException("A valid authenticated user is required.");
+
+            // One onboarding tenant per authenticated creator, including timeout retries.
+            var existing = await _tenantRepository.GetByCreatorUserIdAsync(userId, cancellationToken);
+            if (existing != null)
+                return Result<Guid>.Success(existing.Id);
+
+            if (_currentUser.UserType != "PendingTenant")
+                return Result<Guid>.Failure("Only pending tenant users can create a tenant.");
+
             var nameEn = request.NameEn.Trim();
             var nameAr = request.NameAr?.Trim();
 
@@ -62,8 +79,9 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.CreateCommand
             var tenant = new Tenant
             {
                 Id = tenantId,
-                NameAr = request.NameAr,
-                NameEn = request.NameEn,
+                CreatedByUserId = userId,
+                NameAr = nameAr,
+                NameEn = nameEn,
                 BusinessTypeCode = businessTypeCode,
                 CurrencyCode = currencyCode,
                 InventoryMode = request.InventoryMode,
@@ -77,6 +95,7 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.CreateCommand
             };
             var tenantSubscription = new TenantSubscription
             {
+                Id = Guid.NewGuid(),
                 TenantId = tenant.Id,
                 PlanId= subscriptionPlan.Id,
                 Status= TenantSubscriptionStatuses.Pending,
@@ -99,7 +118,28 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.CreateCommand
             await _tenantSubscriptionRepository.AddAsync(tenantSubscription);
             await _tenantUsageCountersRepository.AddAsync(tenantUsageCounter);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var now = DateTime.UtcNow;
+            await _invoiceRepository.AddAsync(new SubscriptionInvoice
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenant.Id,
+                TenantSubscriptionId = tenantSubscription.Id,
+                InvoiceNumber = $"INV-{tenantSubscription.Id:N}",
+                Total = subscriptionPlan.MonthlyPrice,
+                Status = InvoiceStatuses.Unpaid,
+                DueDate = now,
+                PeriodStart = now,
+                PeriodEnd = now.AddMonths(1),
+            });
+
+            // The tenant, subscription and first invoice commit together.
+            if (!await _unitOfWork.TrySaveTenantCreationAsync(cancellationToken))
+            {
+                existing = await _tenantRepository.GetByCreatorUserIdAsync(userId, cancellationToken);
+                return existing != null
+                    ? Result<Guid>.Success(existing.Id)
+                    : Result<Guid>.Failure("Tenant creation conflicted. Retry onboarding.");
+            }
 
             return Result<Guid>.Success(tenant.Id);
         }
