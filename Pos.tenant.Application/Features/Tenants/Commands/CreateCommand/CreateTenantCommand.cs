@@ -54,6 +54,9 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.CreateCommand
             if (subscriptionPlan==null)
                  return Result<Guid>.Failure("Invalid Subscription Plan.");
 
+            if (!subscriptionPlan.IsActive)
+                return Result<Guid>.Failure("The selected subscription plan is inactive.");
+
             var tenantId = Guid.NewGuid();
 
             var tenant = new Tenant

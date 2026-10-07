@@ -207,75 +207,69 @@ namespace Pos.tenant.WebApi.Controllers.V1
                 "Tenant usage counters retrieved successfully."
             ));
         }
-
+        [Authorize(Policy = "TenantOwnerOnly")]
         [HttpPost("usage/increase-branch")]
-        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseBranch(IncreaseUsageRequest request)
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseBranch(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new IncreaseTenantUsageCommand
             {
-                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Branch
-            });
+            }, cancellationToken);
 
             return HandleUsageCommandResult(result, "Branch usage increased successfully.");
         }
-
+        [Authorize(Policy = "TenantOwnerOnly")]
         [HttpPost("usage/increase-product")]
-        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseProduct(IncreaseUsageRequest request)
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseProduct(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new IncreaseTenantUsageCommand
             {
-                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Product
-            });
+            }, cancellationToken);
 
             return HandleUsageCommandResult(result, "Product usage increased successfully.");
         }
-
+        [Authorize(Policy = "TenantOwnerOnly")]
         [HttpPost("usage/increase-cashier")]
-        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseCashier(IncreaseUsageRequest request)
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> IncreaseCashier(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new IncreaseTenantUsageCommand
             {
-                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Cashier
-            });
+            }, cancellationToken);
 
             return HandleUsageCommandResult(result, "Cashier usage increased successfully.");
         }
-
+        [Authorize(Policy = "TenantOwnerOnly")]
         [HttpPost("usage/decrease-branch")]
-        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseBranch(IncreaseUsageRequest request)
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseBranch(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new DecreaseTenantUsageCommand
             {
-                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Branch
-            });
+            }, cancellationToken);
 
             return HandleUsageCommandResult(result, "Branch usage decreased successfully.");
         }
-
+        [Authorize(Policy = "TenantOwnerOnly")]
         [HttpPost("usage/decrease-product")]
-        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseProduct(IncreaseUsageRequest request)
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseProduct(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new DecreaseTenantUsageCommand
             {
-                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Product
-            });
+            }, cancellationToken);
 
             return HandleUsageCommandResult(result, "Product usage decreased successfully.");
         }
-
+        [Authorize(Policy = "TenantOwnerOnly")]
         [HttpPost("usage/decrease-cashier")]
-        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseCashier(IncreaseUsageRequest request)
+        public async Task<ActionResult<Response<TenantUsageUpdateResult>>> DecreaseCashier(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new DecreaseTenantUsageCommand
             {
-                TenantId = request.TenantId,
                 CounterType = TenantUsageCounterType.Cashier
-            });
+            }, cancellationToken);
 
             return HandleUsageCommandResult(result, "Cashier usage decreased successfully.");
         }

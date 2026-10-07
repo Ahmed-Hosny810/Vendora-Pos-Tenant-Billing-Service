@@ -1,6 +1,7 @@
 using MediatR;
 using Pos.tenant.Application.Features.Tenants.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
+using Pos.tenant.Application.Interfaces.Services;
 using Pos.tenant.Application.Wrappers;
 using Pos.tenant.Domain.Enums;
 
@@ -8,7 +9,6 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.TenantUsageCountersCo
 {
     public class DecreaseTenantUsageCommand : IRequest<Result<TenantUsageUpdateResult>>
     {
-        public Guid TenantId { get; set; }
 
         public TenantUsageCounterType CounterType { get; set; }
     }
@@ -18,26 +18,33 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.TenantUsageCountersCo
     {
         private readonly ITenantUsageCountersRepositoryAsync _tenantUsageCountersRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUser;
 
         public DecreaseTenantUsageCommandHandler(
             ITenantUsageCountersRepositoryAsync tenantUsageCountersRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork, ICurrentUserService currentUser)
         {
             _tenantUsageCountersRepository = tenantUsageCountersRepository;
             _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
         }
 
         public async Task<Result<TenantUsageUpdateResult>> Handle(
             DecreaseTenantUsageCommand request,
             CancellationToken cancellationToken)
         {
+            var tenantId = _currentUser.TenantId;
+
+            if (!tenantId.HasValue || tenantId.Value == Guid.Empty)
+                throw new UnauthorizedAccessException("A valid tenant is required.");
+
             var tenantUsageCounter = await _tenantUsageCountersRepository
-                .GetByTenantIdAsync(request.TenantId, cancellationToken);
+                .GetByTenantIdAsync(tenantId.Value, cancellationToken);
 
             if (tenantUsageCounter == null)
             {
                 return Result<TenantUsageUpdateResult>.Failure(
-                    $"Tenant usage counters with Tenant ID {request.TenantId} not found.");
+                    $"Tenant usage counters with Tenant ID {tenantId.Value} not found.");
             }
 
             int usedCount;

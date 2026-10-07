@@ -1,5 +1,6 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Pos.tenant.Application.Features.SubscriptionPlans.Commands.CreateCommand;
@@ -26,6 +27,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
             _mediator = mediator;
         }
 
+        [Authorize(Policy = "PlatformAdmins")]
         [HttpGet]
         public async Task<ActionResult<Response<IEnumerable<SubscriptionPlanDto>>>> GetAll()
         {
@@ -37,6 +39,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
             ));
         }
 
+        [AllowAnonymous]
         [HttpGet("active")]
         public async Task<ActionResult<Response<IEnumerable<SubscriptionPlanDto>>>> GetActive()
         {
@@ -48,7 +51,8 @@ namespace Pos.tenant.WebApi.Controllers.V1
             ));
         }
 
-        [HttpGet("{id}")]
+        [AllowAnonymous]
+        [HttpGet("{id:guid}")]
         public async Task<ActionResult<Response<SubscriptionPlanDto>>> GetById(Guid id)
         {
             var plan = await _mediator.Send(new GetSubscriptionPlanByIdQuery { Id=id});
@@ -67,6 +71,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
             ));
         }
 
+        [AllowAnonymous]
         [HttpGet("by-code/{code}")]
         public async Task<ActionResult<Response<SubscriptionPlanDto>>> GetByCode(string code)
         {
@@ -90,6 +95,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
             ));
         }
 
+        [Authorize(Policy = "PlatformAdmins")]
         [HttpPost]
         public async Task<ActionResult<Response<Guid>>> Post([FromBody] CreateSubscriptionPlanCommand subscriptionPlan)
         {
@@ -111,6 +117,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
                 "Subscription plan created successfully."
             ));
         }
+        [Authorize(Policy = "PlatformAdmins")]
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<Response<Guid>>> Update(Guid id,[FromBody] UpdateSubscriptionPlanCommand command)
         {
@@ -143,6 +150,7 @@ namespace Pos.tenant.WebApi.Controllers.V1
                 "Subscription plan updated successfully."
             ));
         }
+        [Authorize(Policy = "PlatformAdmins")]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<Response<Guid>>> Delete(Guid id)
         {

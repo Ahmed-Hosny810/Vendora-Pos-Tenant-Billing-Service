@@ -1,6 +1,7 @@
 using MediatR;
 using Pos.tenant.Application.Features.Tenants.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
+using Pos.tenant.Application.Interfaces.Services;
 using Pos.tenant.Application.Wrappers;
 using Pos.tenant.Domain.Constants;
 using Pos.tenant.Domain.Enums;
@@ -12,7 +13,6 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.TenantUsageCountersCo
 {
     public class IncreaseTenantUsageCommand : IRequest<Result<TenantUsageUpdateResult>>
     {
-        public Guid TenantId { get; set; }
         public TenantUsageCounterType CounterType { get; set; }
     }
 
@@ -20,30 +20,37 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.TenantUsageCountersCo
     {
         private readonly ITenantUsageCountersRepositoryAsync _tenantUsageCountersRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUser;
         private readonly ITenantSubscriptionRepositoryAsync _tenantSubscriptionRepository;
 
         public IncreaseTenantUsageCommandHandler(ITenantUsageCountersRepositoryAsync tenantUsageCountersRepository,IUnitOfWork unitOfWork,
-            ITenantSubscriptionRepositoryAsync tenantSubscriptionRepository)
+            ITenantSubscriptionRepositoryAsync tenantSubscriptionRepository, ICurrentUserService currentUser)
         {
             _tenantUsageCountersRepository = tenantUsageCountersRepository;
             _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
             _tenantSubscriptionRepository = tenantSubscriptionRepository;
         }
         public async Task<Result<TenantUsageUpdateResult>> Handle(IncreaseTenantUsageCommand request, CancellationToken cancellationToken)
         {
-            var tenantUsageCounter = await _tenantUsageCountersRepository.GetByTenantIdAsync(request.TenantId, cancellationToken);
+            var tenantId = _currentUser.TenantId;
+
+            if (!tenantId.HasValue || tenantId.Value == Guid.Empty)
+                throw new UnauthorizedAccessException("A valid tenant is required.");
+
+            var tenantUsageCounter = await _tenantUsageCountersRepository.GetByTenantIdAsync(tenantId.Value, cancellationToken);
 
             if (tenantUsageCounter == null)
             {
-                return Result<TenantUsageUpdateResult>.Failure($"Tenant usage counters with Tenant ID {request.TenantId} not found.");
+                return Result<TenantUsageUpdateResult>.Failure($"Tenant usage counters with Tenant ID {tenantId.Value} not found.");
             }
 
             var subscription = await _tenantSubscriptionRepository
-                .GetCurrentPlanByTenantIdAsync(request.TenantId);
+                .GetCurrentPlanByTenantIdAsync(tenantId.Value);
 
             if (subscription == null)
             {
-                return Result<TenantUsageUpdateResult>.Failure($"Tenant subscription with Tenant ID {request.TenantId} not found.");
+                return Result<TenantUsageUpdateResult>.Failure($"Tenant subscription with Tenant ID {tenantId.Value} not found.");
             }
 
             if (subscription.Status != TenantSubscriptionStatuses.Active)
