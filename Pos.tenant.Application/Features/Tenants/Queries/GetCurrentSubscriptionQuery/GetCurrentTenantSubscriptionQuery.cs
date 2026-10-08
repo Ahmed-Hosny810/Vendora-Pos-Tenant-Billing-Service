@@ -29,7 +29,7 @@ public class GetCurrentTenantSubscriptionQueryHandler
         if (!tenantId.HasValue || tenantId.Value == Guid.Empty)
             throw new UnauthorizedAccessException("A valid tenant is required.");
 
-        var subscription = await _repository.GetCurrentPlanByTenantIdAsync(tenantId.Value, cancellationToken);
+        var subscription = await _repository.GetLatestSubscriptionByTenantIdAsync(tenantId.Value, cancellationToken);
         if (subscription == null)
             throw new KeyNotFoundException("Tenant subscription was not found.");
 

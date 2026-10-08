@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Pos.tenant.Application.Interfaces.Repositories;
 using Pos.tenant.Domain.Constants;
 using Pos.tenant.Domain.Models;
@@ -18,13 +18,30 @@ namespace Pos.tenant.Infrastructure.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<TenantSubscription?> GetCurrentPlanByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default)
+        public async Task<TenantSubscription?> GetLatestSubscriptionByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default)
         {
             return await _context.TenantSubscriptions
                 .Include(ts => ts.Plan)
                 .OrderByDescending(x => x.CreatedAt)
                 .ThenByDescending(x => x.Id)
                 .FirstOrDefaultAsync(ts => ts.TenantId == tenantId, cancellationToken);
+        }
+
+        public async Task<TenantSubscription?> GetActiveSubscriptionByTenantIdAsync(
+            Guid tenantId,
+            DateTime nowUtc,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.TenantSubscriptions
+                .Include(subscription => subscription.Plan)
+                .Where(subscription =>
+                    subscription.TenantId == tenantId &&
+                    subscription.Status == TenantSubscriptionStatuses.Active &&
+                    subscription.CurrentPeriodStart.HasValue &&
+                    subscription.CurrentPeriodStart.Value <= nowUtc &&
+                    subscription.CurrentPeriodEnd.HasValue &&
+                    subscription.CurrentPeriodEnd.Value > nowUtc)
+                .SingleOrDefaultAsync(cancellationToken);
         }
 
         public async Task<TenantSubscription?> GetSubscriptionAndPlanByIdAsync(

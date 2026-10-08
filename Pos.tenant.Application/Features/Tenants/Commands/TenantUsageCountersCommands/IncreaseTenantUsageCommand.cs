@@ -46,15 +46,12 @@ namespace Pos.tenant.Application.Features.Tenants.Commands.TenantUsageCountersCo
             }
 
             var subscription = await _tenantSubscriptionRepository
-                .GetCurrentPlanByTenantIdAsync(tenantId.Value);
+                .GetActiveSubscriptionByTenantIdAsync(tenantId.Value, DateTime.UtcNow, cancellationToken);
 
             if (subscription == null)
             {
-                return Result<TenantUsageUpdateResult>.Failure($"Tenant subscription with Tenant ID {tenantId.Value} not found.");
+                return Result<TenantUsageUpdateResult>.Failure("No active subscription with a valid period was found.");
             }
-
-            if (subscription.Status != TenantSubscriptionStatuses.Active)
-                return Result<TenantUsageUpdateResult>.Failure("Subscription is not active.");
 
             if (subscription.Plan == null)
             {

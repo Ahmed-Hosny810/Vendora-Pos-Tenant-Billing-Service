@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Pos.tenant.Application.Features.SubscriptionInvoices.DTOS;
 using Pos.tenant.Application.Interfaces.Repositories;
 using Pos.tenant.Application.Wrappers;
@@ -46,7 +46,7 @@ namespace Pos.tenant.Application.Features.SubscriptionInvoices.Commands.CreateCo
                 return Result<SubscriptionInvoiceDto>.Failure("Tenant not found.");
 
             var subscription = await _tenantSubscriptionRepository
-                .GetCurrentPlanByTenantIdAsync(request.TenantId);
+                .GetLatestSubscriptionByTenantIdAsync(request.TenantId, cancellationToken);
 
             if (subscription == null)
                 return Result<SubscriptionInvoiceDto>.Failure("Tenant subscription not found.");

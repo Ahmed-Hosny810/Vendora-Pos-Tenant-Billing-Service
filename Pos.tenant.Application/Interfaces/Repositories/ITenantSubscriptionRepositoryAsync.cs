@@ -1,11 +1,15 @@
-﻿using Pos.tenant.Domain.Models;
+using Pos.tenant.Domain.Models;
 
 
 namespace Pos.tenant.Application.Interfaces.Repositories
 {
     public interface ITenantSubscriptionRepositoryAsync : IGenericRepositoryAsync<TenantSubscription, Guid>
     {
-        Task<TenantSubscription?> GetCurrentPlanByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default);
+        /// <summary>Gets the latest subscription and plan for billing, regardless of status.</summary>
+        Task<TenantSubscription?> GetLatestSubscriptionByTenantIdAsync(Guid tenantId, CancellationToken cancellationToken = default);
+
+        /// <summary>Gets the active subscription and plan whose period contains the supplied UTC time.</summary>
+        Task<TenantSubscription?> GetActiveSubscriptionByTenantIdAsync(Guid tenantId, DateTime nowUtc, CancellationToken cancellationToken = default);
         Task<TenantSubscription?> GetSubscriptionAndPlanByIdAsync(Guid subscriptionId, CancellationToken cancellationToken = default);
 
         /// <summary>
